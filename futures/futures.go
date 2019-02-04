@@ -6,15 +6,18 @@ import (
 	"time"
 )
 
-func main()  {
+func main() {
+
 	testWaitOnGet()
 	testTimeout()
 }
 
 // Test function to verify that test is received properly
-func testWaitOnGet()  {
+func testWaitOnGet() {
+
 	receiver := make(chan interface{})
 	future := createFuture(receiver, time.Duration(5*time.Second))
+
 	var result interface{}
 	var err error
 	var waitG sync.WaitGroup
@@ -27,17 +30,22 @@ func testWaitOnGet()  {
 
 	receiver <- "test"
 	waitG.Wait()
+
 	fmt.Println("Error is : ", err)
 	fmt.Println("Result is : ", result)
 }
 
 // Test function to verify the timeout
-func testTimeout()  {
+func testTimeout() {
+
 	receiver := make(chan interface{})
 	future := createFuture(receiver, time.Duration(0))
+
 	var result interface{}
 	var err error
+
 	result, err = future.get()
+
 	fmt.Println("Error is : ", err)
 	fmt.Println("Result is : ", result)
 }
@@ -56,6 +64,7 @@ type Future struct {
 
 // Get will either get the results if it exists or will wait for the result till its ready
 func (future *Future) get() (interface{}, error) {
+
 	future.lock.Lock()
 
 	if future.isInitiated {
@@ -71,6 +80,7 @@ func (future *Future) get() (interface{}, error) {
 
 // Sets the various attributes to the future struct
 func (future *Future) set(obj interface{}, err error) {
+
 	future.lock.Lock()
 	future.isInitiated = true
 	future.object = obj
@@ -79,8 +89,9 @@ func (future *Future) set(obj interface{}, err error) {
 	future.waitG.Done()
 }
 
-// Listener which listens to the result and
+// Listener which listens to the result and sets the result accordingly to the future struct
 func listener(future *Future, rc Receiver, timeout time.Duration, group *sync.WaitGroup) {
+
 	group.Done()
 	select {
 	case obj := <-rc:
@@ -88,10 +99,12 @@ func listener(future *Future, rc Receiver, timeout time.Duration, group *sync.Wa
 	case <-time.After(timeout):
 		future.set(nil, fmt.Errorf("timed out after %f seconds", timeout.Seconds()))
 	}
+
 }
 
 // Creates a new instance of future with a channel, duration
 func createFuture(receiver Receiver, duration time.Duration) *Future {
+
 	future := &Future{}
 	future.waitG.Add(1)
 
