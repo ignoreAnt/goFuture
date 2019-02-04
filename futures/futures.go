@@ -102,6 +102,15 @@ func listener(future *Future, rc Receiver, timeout time.Duration, group *sync.Wa
 
 }
 
+// Gets the isDone for the result
+func (future *Future) isDone() bool {
+	future.lock.Lock()
+	isDone := future.isInitiated
+	future.lock.Unlock()
+
+	return isDone
+}
+
 // Creates a new instance of future with a channel, duration
 func createFuture(receiver Receiver, duration time.Duration) *Future {
 
